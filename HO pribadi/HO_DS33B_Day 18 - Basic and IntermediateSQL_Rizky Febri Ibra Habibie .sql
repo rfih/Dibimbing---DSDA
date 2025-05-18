@@ -190,17 +190,13 @@ having count(distinct r.customer_id) > 300;
 select
 	'CASE 1' case,
 	*
-
 from rental
 where staff_id = 1
 	and customer_id = 599
-	
 union
-
 select
 	'CASE 2' case,
 	*
-	
 from rental
 where staff_id = 1
 	and customer_id = 599;
