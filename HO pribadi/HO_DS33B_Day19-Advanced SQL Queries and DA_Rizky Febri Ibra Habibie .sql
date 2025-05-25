@@ -154,7 +154,7 @@ from(
 	)
 where ranking_w_customer = 1;
 
-----------------------
+-- CTE
 with summary as (
 	select
 		customer_id, 
