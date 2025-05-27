@@ -7,6 +7,9 @@ from film;
 
 select left(title, 7) from film;
 
+select *
+from film;
+
 select upper(title) upper_title, 
 	lower(title) lower_title
 from film;
@@ -37,7 +40,7 @@ from film
 select
 	title,
 	POSITION('h' in title) h_position
-from film
+from film;
 --where lower(title) like 'adaptation%';
 
 select
