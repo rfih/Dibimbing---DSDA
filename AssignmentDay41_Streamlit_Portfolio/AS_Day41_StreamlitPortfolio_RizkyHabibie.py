@@ -36,7 +36,7 @@ st.sidebar.divider()
 #Data Loading
 @st.cache_data
 def load_data() -> pd.DataFrame:
-    df = pd.read_csv("ecommerce.csv", encoding="ISO-8859-1")
+    df = pd.read_csv("data/ecommerce.csv", encoding="ISO-8859-1")
     df.columns = [c.strip() for c in df.columns]
 
     if "Quantity" not in df.columns or "UnitPrice" not in df.columns:
