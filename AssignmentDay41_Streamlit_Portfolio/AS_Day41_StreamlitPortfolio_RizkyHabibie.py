@@ -9,6 +9,7 @@ from typing import Tuple
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
+from pathlib import Path
 
 st.set_page_config(page_title="E-Commerce EDA Workflow", layout="wide")
 
@@ -36,28 +37,41 @@ st.sidebar.divider()
 #Data Loading
 @st.cache_data
 def load_data() -> pd.DataFrame:
-    df = pd.read_csv("data/ecommerce.csv", encoding="ISO-8859-1")
-    df.columns = [c.strip() for c in df.columns]
-
-    if "Quantity" not in df.columns or "UnitPrice" not in df.columns:
-        raise ValueError("Missing required columns: 'Quantity' and/or 'UnitPrice'")
-
-    if "InvoiceDate" in df.columns:
-        df["InvoiceDate"] = pd.to_datetime(df["InvoiceDate"], errors="coerce")
+    # 1) Try multiple local paths
+    here = Path(__file__).resolve().parent
+    candidates = [
+        here / "data" / "ecommerce.csv",          # same folder /data
+        here / "ecommerce.csv",                   # same folder
+        here.parent / "data" / "ecommerce.csv",   # repo root /data
+        here.parent / "ecommerce.csv",            # repo root
+        Path.cwd() / "data" / "ecommerce.csv",    # CWD /data
+        Path.cwd() / "ecommerce.csv",             # CWD
+    ]
+    for p in candidates:
+        if p.exists():
+            df = pd.read_csv(p, encoding="ISO-8859-1")
+            break
     else:
-        df["InvoiceDate"] = pd.Timestamp("2010-01-01") + pd.to_timedelta(np.arange(len(df)), unit="D")
+        # 2) Allow manual upload as a fallback (so you can still demo on Cloud)
+        st.warning(
+            "Could not find **ecommerce.csv** in the repository.\n\n"
+            "Please upload the file here, or add it to one of these paths:\n"
+            + "\n".join(f"- `{str(p)}`" for p in candidates)
+        )
+        uploaded = st.file_uploader("Upload ecommerce.csv", type=["csv"], key="csv_upload")
+        if uploaded is None:
+            st.stop()
+        df = pd.read_csv(uploaded, encoding="ISO-8859-1")
 
-    df["Quantity"] = pd.to_numeric(df["Quantity"], errors="coerce")
-    df["UnitPrice"] = pd.to_numeric(df["UnitPrice"], errors="coerce")
-
-    if "Country" not in df.columns:
-        df["Country"] = "Unknown"
-    if "Description" not in df.columns:
-        df["Description"] = "Unknown Product"
-    if "InvoiceNo" not in df.columns:
-        df["InvoiceNo"] = np.arange(len(df)) 
-    if "CustomerID" not in df.columns:
-        df["CustomerID"] = np.nan  
+    # Normalize columns & types (unchanged from your pipeline)
+    df.columns = [c.strip() for c in df.columns]
+    df["InvoiceDate"] = pd.to_datetime(df.get("InvoiceDate"), errors="coerce")
+    df["Quantity"]    = pd.to_numeric(df.get("Quantity"), errors="coerce")
+    df["UnitPrice"]   = pd.to_numeric(df.get("UnitPrice"), errors="coerce")
+    if "Country" not in df.columns:    df["Country"] = "Unknown"
+    if "Description" not in df.columns: df["Description"] = "Unknown Product"
+    if "InvoiceNo" not in df.columns:   df["InvoiceNo"] = np.arange(len(df))
+    if "CustomerID" not in df.columns:  df["CustomerID"] = np.nan
 
     df["TotalPrice"] = (df["Quantity"] * df["UnitPrice"]).fillna(0)
     df = df.dropna(subset=["InvoiceDate"])
