@@ -37,22 +37,20 @@ st.sidebar.divider()
 #Data Loading
 @st.cache_data
 def load_data() -> pd.DataFrame:
-    # 1) Try multiple local paths
     here = Path(__file__).resolve().parent
     candidates = [
-        here / "data" / "ecommerce.csv",          # same folder /data
-        here / "ecommerce.csv",                   # same folder
-        here.parent / "data" / "ecommerce.csv",   # repo root /data
-        here.parent / "ecommerce.csv",            # repo root
-        Path.cwd() / "data" / "ecommerce.csv",    # CWD /data
-        Path.cwd() / "ecommerce.csv",             # CWD
+        here / "data" / "ecommerce.csv",          
+        here / "ecommerce.csv",                   
+        here.parent / "data" / "ecommerce.csv",   
+        here.parent / "ecommerce.csv",           
+        Path.cwd() / "data" / "ecommerce.csv",    
+        Path.cwd() / "ecommerce.csv",           
     ]
     for p in candidates:
         if p.exists():
             df = pd.read_csv(p, encoding="ISO-8859-1")
             break
     else:
-        # 2) Allow manual upload as a fallback (so you can still demo on Cloud)
         st.warning(
             "Could not find **ecommerce.csv** in the repository.\n\n"
             "Please upload the file here, or add it to one of these paths:\n"
@@ -63,7 +61,6 @@ def load_data() -> pd.DataFrame:
             st.stop()
         df = pd.read_csv(uploaded, encoding="ISO-8859-1")
 
-    # Normalize columns & types (unchanged from your pipeline)
     df.columns = [c.strip() for c in df.columns]
     df["InvoiceDate"] = pd.to_datetime(df.get("InvoiceDate"), errors="coerce")
     df["Quantity"]    = pd.to_numeric(df.get("Quantity"), errors="coerce")
